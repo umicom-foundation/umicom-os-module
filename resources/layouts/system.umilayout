@@ -1,0 +1,42 @@
+{
+  "schema": "umicom.layout/1",
+  "layout": {
+    "id": "system",
+    "name": "System",
+    "category": "operating-system",
+    "description": "Umicom OS settings navigation, system overview and inspectable ownership boundary.",
+    "locked": false,
+    "root": {
+      "id": "os.root",
+      "kind": "split",
+      "orientation": "horizontal",
+      "ratio": 0.24,
+      "children": [
+        {
+          "id": "os.settings-navigation",
+          "kind": "panel",
+          "component_id": "umicom.os.settings-navigation",
+          "owner_application_id": "org.umicom.os"
+        },
+        {
+          "id": "os.control-centre",
+          "kind": "tab-group",
+          "children": [
+            {
+              "id": "os.system-overview",
+              "kind": "panel",
+              "component_id": "umicom.os.system-overview",
+              "owner_application_id": "org.umicom.os"
+            },
+            {
+              "id": "os.boundary-report",
+              "kind": "panel",
+              "component_id": "umicom.os.boundary-report",
+              "owner_application_id": "org.umicom.os"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

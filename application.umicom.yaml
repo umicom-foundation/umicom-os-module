@@ -1,0 +1,43 @@
+schema: umicom.application.v1
+
+application:
+  id: org.umicom.os
+  name: Umicom OS Control Centre
+  short_name: OS
+  version: 0.1.0
+  executable: umicom-os-control-centre
+  aliases: [uos, control-centre]
+
+framework:
+  minimum_version: 0.9.0
+  compatible_major: 0
+
+frontends:
+  - console
+  - gtk
+
+entry:
+  kind: system
+  taskbar_group: system
+  pinned_by_default: true
+  icon_resource_id: umicom.icon.application.os
+  default_layout_id: system
+
+capabilities:
+  - system-information
+  - process-supervision
+  - settings
+  - diagnostics
+  - security-status
+  - package-management-contracts
+  - device-contracts
+  - network-contracts
+  - storage-contracts
+
+boundaries:
+  owns_linux_kernel: false
+  owns_bootloader: false
+  owns_initramfs: false
+  owns_recovery_environment: false
+  normal_user_space_uses_framework: true
+  recovery_depends_on_framework: false
