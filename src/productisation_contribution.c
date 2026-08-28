@@ -18,7 +18,7 @@ static const UmiProductApplicationAdoption ADOPTION = {
     "org.umicom.os",
     "Umicom OS Control Centre",
     "umicom-os-control-centre",
-    UMI_PRODUCT_FRONTEND_CONSOLE,
+    UMI_PRODUCT_FRONTEND_FLAG_CONSOLE,
     1,
     1,
     1,
