@@ -5,9 +5,12 @@
  * PURPOSE:
  *   Print the inspectable Umicom OS ownership boundary from user space.
  *
- * Created by: Sammy Hegab
- * Organisation: Umicom Foundation
- * Licence: MIT
+ * AUTHOR AND ORGANISATION:
+ * Sammy Hegab
+ * Umicom Foundation
+ *
+ * LICENCE:
+ * MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/os_module/control_centre.h"
 

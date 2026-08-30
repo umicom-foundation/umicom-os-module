@@ -6,9 +6,12 @@
  *   Define the thin user-space Umicom OS Control Centre contribution and make
  *   the kernel, boot, recovery and Framework boundaries inspectable.
  *
- * Created by: Sammy Hegab
- * Organisation: Umicom Foundation
- * Licence: MIT
+ * AUTHOR AND ORGANISATION:
+ * Sammy Hegab
+ * Umicom Foundation
+ *
+ * LICENCE:
+ * MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMICOM_OS_MODULE_CONTROL_CENTRE_H
 #define UMICOM_OS_MODULE_CONTROL_CENTRE_H

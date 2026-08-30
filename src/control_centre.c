@@ -5,9 +5,12 @@
  * PURPOSE:
  *   Implement the user-space OS Control Centre boundary catalogue.
  *
- * Created by: Sammy Hegab
- * Organisation: Umicom Foundation
- * Licence: MIT
+ * AUTHOR AND ORGANISATION:
+ * Sammy Hegab
+ * Umicom Foundation
+ *
+ * LICENCE:
+ * MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/os_module/control_centre.h"
 

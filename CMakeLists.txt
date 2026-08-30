@@ -6,9 +6,12 @@
 #   Build the thin user-space Umicom OS Control Centre module. The full
 #   distribution, Linux kernel, boot and recovery remain in umicom-os.
 #
-# Created by: Sammy Hegab
-# Organisation: Umicom Foundation
-# Licence: MIT
+# AUTHOR AND ORGANISATION:
+#   Sammy Hegab
+#   Umicom Foundation
+#
+# LICENCE:
+#   MIT
 #-----------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.24)
 
