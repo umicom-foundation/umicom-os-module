@@ -23,21 +23,28 @@ struct UmiOsControlCentre {
     uint64_t revision;
 };
 
+/* Provide the copy text operation used by this module and its client applications. */
 static UmiStatus copy_text(char *destination,
                            size_t capacity,
                            const char *source)
 {
     size_t length;
+    /*
+     * Protect caller-owned memory by checking that required state is available before it is
+     * used.
+     */
     if (destination == NULL || capacity == 0U ||
         source == NULL || source[0] == '\0') {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
     length = strlen(source);
+    /* Keep the operation inside its valid bounds before reading, writing or adding data. */
     if (length >= capacity) return UMI_STATUS_CAPACITY_EXCEEDED;
     (void)memcpy(destination, source, length + 1U);
     return UMI_STATUS_OK;
 }
 
+/* Provide the add boundary operation used by this module and its client applications. */
 static UmiStatus add_boundary(
     UmiOsControlCentre *centre,
     UmiOsLayer layer,
@@ -50,6 +57,10 @@ static UmiStatus add_boundary(
 {
     UmiOsBoundary *boundary;
     UmiStatus status;
+    /*
+     * Protect caller-owned memory by checking that required state is available before it is
+     * used.
+     */
     if (centre == NULL ||
         centre->count >= UMI_OS_CONTROL_MAX_BOUNDARIES) {
         return UMI_STATUS_CAPACITY_EXCEEDED;
@@ -60,14 +71,17 @@ static UmiStatus add_boundary(
     boundary->ownership = ownership;
     status = copy_text(boundary->component,
                        sizeof(boundary->component), component);
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = copy_text(boundary->repository,
                            sizeof(boundary->repository), repository);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = copy_text(boundary->rationale,
                            sizeof(boundary->rationale), rationale);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status != UMI_STATUS_OK) return status;
     boundary->required_for_normal_user_space =
         required_for_normal_user_space;
@@ -77,14 +91,26 @@ static UmiStatus add_boundary(
     return UMI_STATUS_OK;
 }
 
+/*
+ * Initialise os control centre from caller-provided values so later operations receive a
+ * known state.
+ */
 UmiStatus umi_os_control_centre_create(
     UmiOsControlCentre **out_centre)
 {
     UmiOsControlCentre *centre;
     UmiStatus status;
+    /*
+     * Protect caller-owned memory by checking that required state is available before it is
+     * used.
+     */
     if (out_centre == NULL) return UMI_STATUS_INVALID_ARGUMENT;
     *out_centre = NULL;
     centre = (UmiOsControlCentre *)calloc(1U, sizeof(*centre));
+    /*
+     * Protect caller-owned memory by checking that required state is available before it is
+     * used.
+     */
     if (centre == NULL) return UMI_STATUS_OUT_OF_MEMORY;
     centre->revision = 1U;
 
@@ -95,6 +121,7 @@ UmiStatus umi_os_control_centre_create(
         "upstream firmware projects and umicom-os integration",
         "Firmware must operate before Framework user space exists.",
         false, true);
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = add_boundary(
             centre, UMI_OS_LAYER_BOOT,
@@ -104,6 +131,7 @@ UmiStatus umi_os_control_centre_create(
             "Boot and early recovery are distribution responsibilities.",
             false, true);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = add_boundary(
             centre, UMI_OS_LAYER_KERNEL,
@@ -113,6 +141,7 @@ UmiStatus umi_os_control_centre_create(
             "Framework is portable user-space software, not a kernel fork.",
             false, true);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = add_boundary(
             centre, UMI_OS_LAYER_RECOVERY,
@@ -122,6 +151,7 @@ UmiStatus umi_os_control_centre_create(
             "Recovery must function when Framework is damaged.",
             false, true);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = add_boundary(
             centre, UMI_OS_LAYER_SYSTEM_SERVICES,
@@ -131,6 +161,7 @@ UmiStatus umi_os_control_centre_create(
             "The distribution selects and configures host user-space services.",
             true, false);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = add_boundary(
             centre, UMI_OS_LAYER_FRAMEWORK,
@@ -140,6 +171,7 @@ UmiStatus umi_os_control_centre_create(
             "Framework owns reusable user-space contracts and adapters.",
             true, false);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = add_boundary(
             centre, UMI_OS_LAYER_DESKTOP,
@@ -149,6 +181,7 @@ UmiStatus umi_os_control_centre_create(
             "The thin module contributes product identity and system panels.",
             true, false);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = add_boundary(
             centre, UMI_OS_LAYER_APPLICATION,
@@ -159,6 +192,7 @@ UmiStatus umi_os_control_centre_create(
             false, false);
     }
 
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status != UMI_STATUS_OK) {
         free(centre);
         return status;
@@ -167,29 +201,50 @@ UmiStatus umi_os_control_centre_create(
     return UMI_STATUS_OK;
 }
 
+/*
+ * Release or reset state held by os control centre so the same storage can be reused
+ * safely.
+ */
 void umi_os_control_centre_destroy(UmiOsControlCentre *centre)
 {
     free(centre);
 }
 
+/*
+ * Find os control centre boundary while leaving the underlying catalogue or model owned by
+ * this module.
+ */
 UmiStatus umi_os_control_centre_boundary_at(
     const UmiOsControlCentre *centre,
     size_t index,
     UmiOsBoundary *out_boundary)
 {
+    /*
+     * Protect caller-owned memory by checking that required state is available before it is
+     * used.
+     */
     if (centre == NULL || out_boundary == NULL) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
+    /* Keep the operation inside its valid bounds before reading, writing or adding data. */
     if (index >= centre->count) return UMI_STATUS_NOT_FOUND;
     *out_boundary = centre->boundaries[index];
     return UMI_STATUS_OK;
 }
 
+/*
+ * Provide the os control centre snapshot operation used by this module and its client
+ * applications.
+ */
 UmiStatus umi_os_control_centre_snapshot(
     const UmiOsControlCentre *centre,
     UmiOsControlCentreSnapshot *out_snapshot)
 {
     size_t index;
+    /*
+     * Protect caller-owned memory by checking that required state is available before it is
+     * used.
+     */
     if (centre == NULL || out_snapshot == NULL) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
@@ -199,11 +254,14 @@ UmiStatus umi_os_control_centre_snapshot(
     out_snapshot->kernel_inside_framework = false;
     out_snapshot->recovery_depends_on_framework = false;
     out_snapshot->revision = centre->revision;
+    /* Visit each bounded item once so every record receives the same rule. */
     for (index = 0U; index < centre->count; ++index) {
+        /* Keep the operation inside its valid bounds before reading, writing or adding data. */
         if (centre->boundaries[index].ownership ==
             UMI_OS_OWNERSHIP_FRAMEWORK) {
             out_snapshot->framework_owned_count += 1U;
         }
+        /* Keep the operation inside its valid bounds before reading, writing or adding data. */
         if (centre->boundaries[index].ownership ==
             UMI_OS_OWNERSHIP_FULL_OS_REPOSITORY) {
             out_snapshot->os_repository_owned_count += 1U;
@@ -212,8 +270,10 @@ UmiStatus umi_os_control_centre_snapshot(
     return UMI_STATUS_OK;
 }
 
+/* Provide the os layer text operation used by this module and its client applications. */
 const char *umi_os_layer_text(UmiOsLayer layer)
 {
+    /* Select the behaviour associated with the requested command or state value. */
     switch (layer) {
     case UMI_OS_LAYER_FIRMWARE: return "firmware";
     case UMI_OS_LAYER_BOOT: return "boot";
@@ -227,8 +287,10 @@ const char *umi_os_layer_text(UmiOsLayer layer)
     }
 }
 
+/* Provide the os ownership text operation used by this module and its client applications. */
 const char *umi_os_ownership_text(UmiOsOwnership ownership)
 {
+    /* Select the behaviour associated with the requested command or state value. */
     switch (ownership) {
     case UMI_OS_OWNERSHIP_FULL_OS_REPOSITORY: return "umicom-os";
     case UMI_OS_OWNERSHIP_UPSTREAM_PROJECT: return "upstream";

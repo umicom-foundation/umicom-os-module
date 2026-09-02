@@ -27,6 +27,10 @@
         }                                                                      \
     } while (0)
 
+/*
+ * Start this command or application, report setup failures, and return a process exit code
+ * to the operating system.
+ */
 int main(void)
 {
     UmiOsControlCentre *centre = NULL;
@@ -44,9 +48,11 @@ int main(void)
     REQUIRE(!snapshot.recovery_depends_on_framework);
     REQUIRE(snapshot.normal_user_space_uses_framework);
 
+    /* Visit each bounded item once so every record receives the same rule. */
     for (index = 0U; index < snapshot.boundary_count; ++index) {
         REQUIRE(umi_os_control_centre_boundary_at(
                     centre, index, &boundary) == UMI_STATUS_OK);
+        /* Apply this branch only when its contract condition is satisfied. */
         if (boundary.layer == UMI_OS_LAYER_KERNEL) {
             saw_kernel = true;
             REQUIRE(boundary.ownership ==
@@ -54,6 +60,7 @@ int main(void)
             REQUIRE(strstr(boundary.repository, "Linux") != NULL ||
                     strstr(boundary.repository, "linux") != NULL);
         }
+        /* Apply this branch only when its contract condition is satisfied. */
         if (boundary.layer == UMI_OS_LAYER_FRAMEWORK) {
             saw_framework = true;
             REQUIRE(boundary.ownership == UMI_OS_OWNERSHIP_FRAMEWORK);

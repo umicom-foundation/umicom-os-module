@@ -16,6 +16,10 @@
 
 #include <stdio.h>
 
+/*
+ * Start this command or application, report setup failures, and return a process exit code
+ * to the operating system.
+ */
 int main(void)
 {
     UmiOsControlCentre *centre = NULL;
@@ -23,9 +27,11 @@ int main(void)
     UmiStatus status = umi_os_control_centre_create(&centre);
     size_t index;
 
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = umi_os_control_centre_snapshot(centre, &snapshot);
     }
+    /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status != UMI_STATUS_OK) {
         (void)fprintf(stderr, "Umicom OS Control Centre failed: %s\n",
                       umi_status_text(status));
@@ -41,10 +47,12 @@ int main(void)
     (void)printf("Normal user space uses Framework: %s\n\n",
                  snapshot.normal_user_space_uses_framework ? "yes" : "no");
 
+    /* Visit each bounded item once so every record receives the same rule. */
     for (index = 0U; index < snapshot.boundary_count; ++index) {
         UmiOsBoundary boundary;
         status = umi_os_control_centre_boundary_at(
             centre, index, &boundary);
+        /* Preserve the original failure result so the caller can respond to the correct cause. */
         if (status != UMI_STATUS_OK) break;
         (void)printf("%-16s %-20s %s\n",
                      umi_os_layer_text(boundary.layer),
