@@ -24,12 +24,19 @@ int main(void)
 {
     UmiOsControlCentre *centre = NULL;
     UmiOsControlCentreSnapshot snapshot;
+    UmiCtOsArchitectureDecision architecture;
     UmiStatus status = umi_os_control_centre_create(&centre);
     size_t index;
 
     /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = umi_os_control_centre_snapshot(centre, &snapshot);
+    }
+    /* Read the same Framework-owned decision that future graphical panels will
+     * render, rather than maintaining a second list in the console frontend. */
+    if (status == UMI_STATUS_OK) {
+        status = umi_os_control_centre_architecture_decision(
+            centre, &architecture);
     }
     /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status != UMI_STATUS_OK) {
@@ -46,6 +53,15 @@ int main(void)
                  snapshot.recovery_depends_on_framework ? "yes" : "no");
     (void)printf("Normal user space uses Framework: %s\n\n",
                  snapshot.normal_user_space_uses_framework ? "yes" : "no");
+    (void)printf("Production foundation: %s\n",
+                 umi_ct_os_foundation_text(
+                     architecture.production_foundation));
+    (void)printf("Portability target: %s\n",
+                 umi_ct_os_foundation_text(
+                     architecture.portability_foundation));
+    (void)printf("Independent research: %s\n\n",
+                 umi_ct_os_foundation_text(
+                     architecture.research_foundation));
 
     /* Visit each bounded item once so every record receives the same rule. */
     for (index = 0U; index < snapshot.boundary_count; ++index) {

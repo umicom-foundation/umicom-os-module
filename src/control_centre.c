@@ -21,6 +21,7 @@ struct UmiOsControlCentre {
     UmiOsBoundary boundaries[UMI_OS_CONTROL_MAX_BOUNDARIES];
     size_t count;
     uint64_t revision;
+    UmiCtOsArchitectureDecision architecture_decision;
 };
 
 /* Provide the copy text operation used by this module and its client applications. */
@@ -114,13 +115,24 @@ UmiStatus umi_os_control_centre_create(
     if (centre == NULL) return UMI_STATUS_OUT_OF_MEMORY;
     centre->revision = 1U;
 
-    status = add_boundary(
-        centre, UMI_OS_LAYER_FIRMWARE,
-        UMI_OS_OWNERSHIP_UPSTREAM_PROJECT,
-        "UEFI, OpenSBI and platform firmware",
-        "upstream firmware projects and umicom-os integration",
-        "Firmware must operate before Framework user space exists.",
-        false, true);
+    /* Load the Framework-owned decision before publishing any UI boundaries.
+     * A malformed policy therefore cannot be presented as an accepted plan. */
+    status = umi_ct_umicom_os_architecture_decision_default(
+        &centre->architecture_decision);
+    if (status == UMI_STATUS_OK) {
+        status = umi_ct_umicom_os_architecture_decision_validate(
+            &centre->architecture_decision);
+    }
+
+    if (status == UMI_STATUS_OK) {
+        status = add_boundary(
+            centre, UMI_OS_LAYER_FIRMWARE,
+            UMI_OS_OWNERSHIP_UPSTREAM_PROJECT,
+            "UEFI, OpenSBI and platform firmware",
+            "upstream firmware projects and umicom-os integration",
+            "Firmware must operate before Framework user space exists.",
+            false, true);
+    }
     /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
         status = add_boundary(
@@ -140,6 +152,17 @@ UmiStatus umi_os_control_centre_create(
             "upstream Linux plus umicom-os kernel metadata",
             "Framework is portable user-space software, not a kernel fork.",
             false, true);
+    }
+    /* Keep the original kernel visible as research evidence while clearly
+     * separating it from the kernel used by the production distribution. */
+    if (status == UMI_STATUS_OK) {
+        status = add_boundary(
+            centre, UMI_OS_LAYER_KERNEL,
+            UMI_OS_OWNERSHIP_KERNEL_RESEARCH,
+            "Experimental Umicom microkernel",
+            "umicom-foundation/umicom-kernel",
+            "Kernel research is independent and is not the product default.",
+            false, false);
     }
     /* Preserve the original failure result so the caller can respond to the correct cause. */
     if (status == UMI_STATUS_OK) {
@@ -198,6 +221,21 @@ UmiStatus umi_os_control_centre_create(
         return status;
     }
     *out_centre = centre;
+    return UMI_STATUS_OK;
+}
+
+/* Return a copy rather than the address stored inside the Control Centre. This
+ * prevents presentation code from changing the authoritative decision. */
+UmiStatus umi_os_control_centre_architecture_decision(
+    const UmiOsControlCentre *centre,
+    UmiCtOsArchitectureDecision *out_decision)
+{
+    /* Both objects remain caller-owned, so reject missing storage before the
+     * structure assignment reads or writes memory. */
+    if (centre == NULL || out_decision == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    *out_decision = centre->architecture_decision;
     return UMI_STATUS_OK;
 }
 
@@ -297,6 +335,7 @@ const char *umi_os_ownership_text(UmiOsOwnership ownership)
     case UMI_OS_OWNERSHIP_FRAMEWORK: return "umicom-framework";
     case UMI_OS_OWNERSHIP_OS_MODULE: return "umicom-os-module";
     case UMI_OS_OWNERSHIP_APPLICATION_MODULE: return "application-module";
+    case UMI_OS_OWNERSHIP_KERNEL_RESEARCH: return "umicom-kernel";
     default: return "invalid";
     }
 }

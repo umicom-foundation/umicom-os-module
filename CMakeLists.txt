@@ -110,6 +110,10 @@ install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(DIRECTORY resources/
     DESTINATION ${CMAKE_INSTALL_DATADIR}/umicom/applications/os)
+# Install architecture records beside the application metadata so packaged
+# systems preserve the reasoning and boundaries used to build the product.
+install(DIRECTORY docs/
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/umicom/applications/os/docs)
 install(FILES application.umicom.yaml README.md LICENSE
     DESTINATION ${CMAKE_INSTALL_DATADIR}/umicom/applications/os)
 

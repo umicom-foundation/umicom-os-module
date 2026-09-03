@@ -21,6 +21,7 @@
 #include <stdint.h>
 
 #include "umicom/base/status.h"
+#include "umicom/platform/cross_target/os_architecture_decision.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,7 +52,8 @@ typedef enum UmiOsOwnership {
     UMI_OS_OWNERSHIP_UPSTREAM_PROJECT = 2,
     UMI_OS_OWNERSHIP_FRAMEWORK = 3,
     UMI_OS_OWNERSHIP_OS_MODULE = 4,
-    UMI_OS_OWNERSHIP_APPLICATION_MODULE = 5
+    UMI_OS_OWNERSHIP_APPLICATION_MODULE = 5,
+    UMI_OS_OWNERSHIP_KERNEL_RESEARCH = 6
 } UmiOsOwnership;
 
 /**
@@ -113,6 +115,13 @@ UmiStatus umi_os_control_centre_boundary_at(
 UmiStatus umi_os_control_centre_snapshot(
     const UmiOsControlCentre *centre,
     UmiOsControlCentreSnapshot *out_snapshot);
+
+/* Copy the accepted architecture record into caller-owned storage so a view
+ * can explain the product, portability and research tracks without owning or
+ * changing the Framework policy object. */
+UmiStatus umi_os_control_centre_architecture_decision(
+    const UmiOsControlCentre *centre,
+    UmiCtOsArchitectureDecision *out_decision);
 
 /**
  * Provide the os layer text operation used by this module and its client applications.
